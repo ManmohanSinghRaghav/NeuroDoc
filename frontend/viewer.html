@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>neuroDoc - Document Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">neuroDoc</a>
+                <div class="user-avatar" title="User Profile">U</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="viewer-nav">
+            <a href="index.html" class="nav-btn secondary">← Back to Home</a>
+            <h2 id="viewerTitle">Document Title</h2>
+            <button class="nav-btn" id="editBtn">Edit Document →</button>
+        </div>
+
+        <div class="viewer-container">
+            <div class="document-content" id="documentContent">
+                <p style="color: var(--text-light); text-align: center; padding: 3rem;">Loading document...</p>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h3 class="sidebar-title">Topics</h3>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                </div>
+                <div id="topicTree">
+                    <div class="tree-item">
+                        <div class="tree-toggle" onclick="toggleTree(this)">
+                            <span class="tree-icon">▶</span>
+                            Neuroscience
+                        </div>
+                        <div class="tree-children">
+                            <div class="tree-item">
+                                <div class="tree-toggle" onclick="toggleTree(this)">
+                                    <span class="tree-icon">▶</span>
+                                    Brain Imaging
+                                </div>
+                                <div class="tree-children">
+                                    <div class="tree-toggle">EEG</div>
+                                    <div class="tree-toggle">MEG</div>
+                                    <div class="tree-toggle">fMRI</div>
+                                </div>
+                            </div>
+                            <div class="tree-item">
+                                <div class="tree-toggle" onclick="toggleTree(this)">
+                                    <span class="tree-icon">▶</span>
+                                    Neurodegenerative
+                                </div>
+                                <div class="tree-children">
+                                    <div class="tree-toggle">Alzheimer</div>
+                                    <div class="tree-toggle">Parkinson</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="viewer.js"></script>
+</body>
+</html>

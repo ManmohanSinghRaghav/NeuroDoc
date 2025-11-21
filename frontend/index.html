@@ -1,135 +1,59 @@
-<!doctype html>
+<!-- index.html - Page 1: Home / Search & Browse -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Frontend Template — Tailwind</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome (icons) -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-  <!-- Tailwind via CDN for quick editing -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            display: ['Montserrat']
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- Local styles (small overrides) -->
-  <link rel="stylesheet" href="src/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>neuroDoc - Home</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans">
-  <!-- Header -->
-  <header class="bg-white shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <a href="#" class="flex items-center gap-3">
-          <img src="assets/logo.svg" alt="Logo" class="w-10 h-10">
-          <span class="font-display text-xl">MyBrand</span>
-        </a>
-        <nav class="hidden md:flex gap-6 items-center text-sm">
-          <a href="#" class="text-slate-600 hover:text-slate-900">Home</a>
-          <a href="components.html" class="text-slate-600 hover:text-slate-900">Components</a>
-          <a href="#" class="text-slate-600 hover:text-slate-900">Docs</a>
-          <a href="#" class="text-slate-600 hover:text-slate-900">Contact</a>
-          <button id="themeToggle" class="px-4 py-2 bg-sky-600 text-white rounded-md text-sm">Toggle Theme</button>
-        </nav>
-        <button class="md:hidden p-2 rounded-md text-slate-700 hover:bg-slate-100">
-          <i class="fa fa-bars"></i>
-        </button>
-      </div>
-    </div>
-  </header>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">NeuroDoc</a>
+            </div>
+        </div>
+    </header>
 
-  <!-- Hero -->
-  <main class="mt-10">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        <div>
-          <h1 class="text-4xl sm:text-5xl font-display font-bold leading-tight">Fast editable frontend template with Tailwind</h1>
-          <p class="mt-4 text-lg text-slate-600">Edit the HTML, tweak utilities in the classes, and add components. Fonts and icons are loaded via CDN for simplicity.</p>
-
-          <div class="mt-6 flex gap-3">
-            <a href="#" class="inline-flex items-center gap-2 px-5 py-3 bg-sky-600 text-white rounded-md shadow hover:bg-sky-700">
-              <i class="fa fa-rocket"></i>
-              <span>Get started</span>
-            </a>
-            <a href="#" class="inline-flex items-center gap-2 px-5 py-3 border border-slate-200 rounded-md hover:bg-slate-50">
-              <i class="fa fa-book"></i>
-              <span>View docs</span>
-            </a>
-          </div>
-
-          <div class="mt-8 text-sm text-slate-500">Editable areas: <span class="font-medium text-slate-700">index.html</span>, <span class="font-medium text-slate-700">src/styles.css</span>, <span class="font-medium text-slate-700">src/main.js</span>.</div>
+    <div class="container">
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search documents, topics, authors..." id="searchInput">
+                <span class="search-icon">Search<i class="fa-solid fa-magnifying-glass"></i></span>
+            </div>
         </div>
 
-        <div class="bg-gradient-to-br from-white to-slate-100 p-6 rounded-xl shadow-sm">
-          <h3 class="text-lg font-semibold">Quick components</h3>
-          <ul class="mt-4 space-y-3">
-            <li class="flex items-start gap-3">
-              <i class="fa fa-check-circle text-green-500 mt-1"></i>
-              <div>
-                <div class="font-medium">Icons & fonts ready</div>
-                <div class="text-sm text-slate-500">Uses Google Fonts and Font Awesome CDN links.</div>
-              </div>
-            </li>
-            <li class="flex items-start gap-3">
-              <i class="fa fa-wrench text-slate-600 mt-1"></i>
-              <div>
-                <div class="font-medium">Tailwind via CDN</div>
-                <div class="text-sm text-slate-500">No build step required — edit classes directly.</div>
-              </div>
-            </li>
-          </ul>
+        <div class="topics-container">
+            <div class="topic-chip" data-topic="Neuroscience">Neuroscience</div>
+            <div class="topic-chip" data-topic="Alzheimer">Alzheimer</div>
+            <div class="topic-chip" data-topic="EEG">EEG</div>
+            <div class="topic-chip" data-topic="fMRI">fMRI</div>
+            <div class="topic-chip" data-topic="Parkinson">Parkinson</div>
+            <div class="topic-chip" data-topic="Stroke">Stroke</div>
+            <div class="topic-chip" data-topic="Epilepsy">Epilepsy</div>
         </div>
-      </div>
 
-      <!-- Example editable card grid -->
-      <section class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <article class="p-5 bg-white rounded-lg shadow-sm">
-          <h4 class="font-semibold">Card title</h4>
-          <p class="mt-2 text-sm text-slate-500">Short description. Edit this content directly.</p>
-          <div class="mt-4">
-            <a class="text-sky-600 hover:underline" href="#">Learn more →</a>
-          </div>
-        </article>
-        <article class="p-5 bg-white rounded-lg shadow-sm">
-          <h4 class="font-semibold">Another card</h4>
-          <p class="mt-2 text-sm text-slate-500">Use Tailwind utilities here to style.</p>
-        </article>
-        <article class="p-5 bg-white rounded-lg shadow-sm">
-          <h4 class="font-semibold">Third card</h4>
-          <p class="mt-2 text-sm text-slate-500">Replace with your components.</p>
-        </article>
-      </section>
+        <div class="documents-section">
+            <div class="section-header">
+                <h2 class="section-title">Featured Documents</h2>
+                <select class="sort-dropdown" id="sortDropdown">
+                    <option value="relevance">Sort by: Relevance</option>
+                    <option value="date">Sort by: Date</option>
+                    <option value="popularity">Sort by: Popularity</option>
+                </select>
+            </div>
 
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="mt-16 bg-white border-t">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-slate-500">
-      <div class="flex items-center justify-between">
-        <div>© <span id="year"></span> MyBrand</div>
-        <div class="flex gap-4">
-          <a href="#" class="hover:text-slate-900"><i class="fa fa-twitter"></i></a>
-          <a href="#" class="hover:text-slate-900"><i class="fa fa-github"></i></a>
+            <div class="document-grid" id="documentGrid"></div>
+            
+            <div style="text-align: center; margin: 2rem 0;">
+                <button class="btn btn-primary" onclick="window.location.href='create.html'">+ Create New Document</button>
+            </div>
         </div>
-      </div>
     </div>
-  </footer>
 
-  <script src="src/main.js"></script>
+    <script src="script.js"></script>
+    <script src="home.js"></script>
 </body>
 </html>
+
