@@ -58,69 +58,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Topics (Improved Multi-level Tagging System)</label>
-                    <button type="button" class="btn btn-secondary" style="margin-bottom: 1rem;" onclick="expandAllTopics()">+ Add Topic</button>
-                    
-                    <div class="topic-tree" id="editTopicTree">
-                        <div class="tree-item">
-                            <div class="tree-toggle" onclick="toggleTree(this)">
-                                <span class="tree-icon">▶</span>
-                                Neuroscience
-                            </div>
-                            <div class="tree-children">
-                                <div class="tree-item">
-                                    <div class="tree-toggle" onclick="toggleTree(this)">
-                                        <span class="tree-icon">▶</span>
-                                        Brain Imaging
-                                    </div>
-                                    <div class="tree-children">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="EEG"> EEG
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="MEG"> MEG
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="fMRI"> fMRI
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="tree-item">
-                                    <div class="tree-toggle" onclick="toggleTree(this)">
-                                        <span class="tree-icon">▶</span>
-                                        Clinical Neurology
-                                    </div>
-                                    <div class="tree-children">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="Alzheimer"> Alzheimer
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="Epilepsy"> Epilepsy
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="Parkinson"> Parkinson
-                                        </label>
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" name="topics" value="Stroke"> Stroke
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 1rem;">
-                        <p style="font-weight: 600; margin-bottom: 0.5rem;">Suggested Topics (AI-powered):</p>
-                        <div class="suggested-topics">
-                            <div class="suggested-tag" data-topic="EEG">+ EEG</div>
-                            <div class="suggested-tag" data-topic="Signal Processing">+ Signal Processing</div>
-                            <div class="suggested-tag" data-topic="Deep Learning">+ Deep Learning</div>
-                            <div class="suggested-tag" data-topic="2025 Review">+ 2025 Review</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
                     <label class="form-label">Metadata (optional)</label>
                     <input type="text" class="form-input" id="docAuthors" placeholder="Authors (e.g., John Doe, Jane Smith)" style="margin-bottom: 1rem;">
                     <input type="text" class="form-input" id="docYear" placeholder="Year (e.g., 2025)" style="margin-bottom: 1rem;">

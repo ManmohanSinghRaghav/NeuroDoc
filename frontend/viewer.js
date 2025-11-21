@@ -1,9 +1,6 @@
-// viewer.js - Document viewer functionality
-
 let currentDocument = null;
 let availableTopics = [];
 
-// Initialize
 document.addEventListener('DOMContentLoaded', async function() {
     await loadAvailableTopics();
     await loadDocument();
@@ -12,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupDeleteButton();
 });
 
-// Load available topics from backend
 async function loadAvailableTopics() {
     try {
         availableTopics = await loadTopics();
@@ -22,7 +18,6 @@ async function loadAvailableTopics() {
     }
 }
 
-// Update topic sidebar with backend topics
 function updateTopicSidebar() {
     const topicTree = document.getElementById('topicTree');
     if (!topicTree || availableTopics.length === 0) return;
@@ -36,7 +31,6 @@ function updateTopicSidebar() {
     topicTree.innerHTML = topicHTML;
 }
 
-// Load document from URL parameter
 async function loadDocument() {
     const urlParams = new URLSearchParams(window.location.search);
     const docId = urlParams.get('id');
@@ -60,7 +54,6 @@ async function loadDocument() {
     }
 }
 
-// Display document
 function displayDocument(doc) {
     document.getElementById('viewerTitle').textContent = doc.title;
     document.title = `neuroDoc - ${doc.title}`;
@@ -127,7 +120,6 @@ function displayDocument(doc) {
     `;
 }
 
-// Show error
 function showError() {
     document.getElementById('documentContent').innerHTML = `
         <div style="text-align: center; padding: 3rem; color: var(--text-light);">
@@ -138,7 +130,6 @@ function showError() {
     `;
 }
 
-// Highlight topics in sidebar
 function highlightTopics(topicIds) {
     const allToggles = document.querySelectorAll('#topicTree .tree-toggle');
     
@@ -150,7 +141,6 @@ function highlightTopics(topicIds) {
     });
 }
 
-// Setup sidebar
 function setupSidebar() {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.sidebar');
@@ -161,7 +151,7 @@ function setupSidebar() {
         });
     }
     
-    // Make topic toggles clickable
+
     const topicTree = document.getElementById('topicTree');
     if (topicTree) {
         topicTree.addEventListener('click', function(e) {
@@ -176,7 +166,6 @@ function setupSidebar() {
     }
 }
 
-// Setup edit button
 function setupEditButton() {
     const editBtn = document.getElementById('editBtn');
     
@@ -189,12 +178,10 @@ function setupEditButton() {
     }
 }
 
-// Setup delete button
 function setupDeleteButton() {
-    // Delete button is added dynamically in displayDocument
+
 }
 
-// Handle delete document
 async function handleDeleteDocument() {
     if (!currentDocument) return;
     
@@ -211,7 +198,6 @@ async function handleDeleteDocument() {
     }
 }
 
-// Share document
 function shareDocument() {
     const url = window.location.href;
     
@@ -222,7 +208,7 @@ function shareDocument() {
             url: url
         }).catch(err => console.log('Share failed:', err));
     } else {
-        // Fallback: copy to clipboard
+    
         navigator.clipboard.writeText(url).then(() => {
             alert('Link copied to clipboard!');
         }).catch(err => {
@@ -232,7 +218,6 @@ function shareDocument() {
     }
 }
 
-// Download document
 function downloadDocument() {
     const content = `${currentDocument.title}\n\n${currentDocument.content}`;
     const blob = new Blob([content], { type: 'text/plain' });

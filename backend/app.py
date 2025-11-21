@@ -49,7 +49,7 @@ topic_model = None
 
 def extract_keywords(text, num_keywords=5):
     text = re.sub(r'[^a-zA-Z\s]', '', text.lower())
-    
+
     stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
                   'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 
                   'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 
@@ -64,12 +64,10 @@ def extract_keywords(text, num_keywords=5):
     return [word for word, _ in word_freq.most_common(num_keywords)]
 
 def find_or_create_topic(keywords, existing_topics):
-    
     for topic in existing_topics:
         topic_keywords = set(topic.get('keywords', []))
         if any(kw in topic_keywords for kw in keywords):
             return topic['topic_id'], topic['keywords'][:3]
-    
     
     return None, keywords[:3]
 
@@ -195,7 +193,6 @@ class DocumentCreateModel(BaseModel):
     title: str
     content: str
     genre: Optional[str] = "General"
-    topics: List[int] = []
     authors: List[str] = []
     year: Optional[int] = None
     doi: Optional[str] = None
@@ -386,18 +383,25 @@ async def create_document(document: DocumentCreateModel):
         doc_dict["story_id"] = 0  
         
         
-        if not doc_dict.get("topics") or len(doc_dict["topics"]) == 0:
-            keywords = extract_keywords(doc_dict["content"], num_keywords=5)
-            doc_dict["topic_names"] = keywords[:3]
-            doc_dict["topics"] = []  
-        else:
-            
-            topic_names = []
-            for topic_id in doc_dict["topics"]:
-                topic = await db.topics.find_one({"topic_id": topic_id})
-                if topic:
-                    topic_names.extend(topic.get("keywords", [])[:3])
-            doc_dict["topic_names"] = topic_names
+        content_text = doc_dict["content"] + " " + doc_dict["title"]
+        keywords = extract_keywords(content_text, num_keywords=10)
+        
+        
+        existing_topics = await db.topics.find().to_list(length=None)
+        
+        
+        matched_topic_ids = []
+        for topic in existing_topics:
+            topic_keywords = set([kw.lower() for kw in topic.get('keywords', [])])
+            if any(kw.lower() in topic_keywords for kw in keywords):
+                matched_topic_ids.append(topic['topic_id'])
+                if len(matched_topic_ids) >= 3:  
+                    break
+        
+        
+        doc_dict["topics"] = matched_topic_ids[:3]
+        doc_dict["topic_names"] = keywords[:5]  
+        
         
         result = await db.documents.insert_one(doc_dict)
         doc_dict["_id"] = str(result.inserted_id)

@@ -1,4 +1,4 @@
-/* styles.css - Shared styles for all pages */
+
 
 * {
     margin: 0;
@@ -32,7 +32,6 @@ body {
     padding: 0 1.5rem;
 }
 
-/* Header */
 header {
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
@@ -77,7 +76,6 @@ header {
     transform: scale(1.1);
 }
 
-/* Search Bar */
 .search-section {
     padding: 3rem 0 2rem;
 }
@@ -114,7 +112,6 @@ header {
     pointer-events: none;
 }
 
-/* Topic Chips */
 .topics-container {
     padding: 1.5rem 0;
     overflow-x: auto;
@@ -155,7 +152,6 @@ header {
     transform: translateY(-2px);
 }
 
-/* Document Grid */
 .documents-section {
     padding: 2rem 0;
 }
@@ -236,7 +232,6 @@ header {
     overflow: hidden;
 }
 
-/* Document Viewer */
 .viewer-container {
     display: flex;
     gap: 2rem;
@@ -378,7 +373,6 @@ header {
     transform: rotate(90deg);
 }
 
-/* Create/Edit Form */
 .form-container {
     max-width: 1000px;
     margin: 2rem auto;
@@ -545,12 +539,10 @@ header {
     color: var(--primary);
 }
 
-/* Utility Classes */
 .hidden {
     display: none !important;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .document-grid {
         grid-template-columns: 1fr;
