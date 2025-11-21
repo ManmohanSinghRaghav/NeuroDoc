@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pymongo
+motor
+pandas
+bertopic
+python-dotenv
+pydantic
+pydantic-settings
+sentence-transformers
+scikit-learn

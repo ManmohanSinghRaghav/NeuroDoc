@@ -1,26 +1,58 @@
 // viewer.js - Document viewer functionality
 
 let currentDocument = null;
+let availableTopics = [];
 
 // Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    loadDocument();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadAvailableTopics();
+    await loadDocument();
     setupSidebar();
     setupEditButton();
+    setupDeleteButton();
 });
 
+// Load available topics from backend
+async function loadAvailableTopics() {
+    try {
+        availableTopics = await loadTopics();
+        updateTopicSidebar();
+    } catch (error) {
+        console.error('Error loading topics:', error);
+    }
+}
+
+// Update topic sidebar with backend topics
+function updateTopicSidebar() {
+    const topicTree = document.getElementById('topicTree');
+    if (!topicTree || availableTopics.length === 0) return;
+    
+    const topicHTML = availableTopics.slice(0, 20).map(topic => `
+        <div class="tree-toggle" data-topic-id="${topic.topic_id}">
+            ${topic.keywords[0] || topic.name}
+        </div>
+    `).join('');
+    
+    topicTree.innerHTML = topicHTML;
+}
+
 // Load document from URL parameter
-function loadDocument() {
+async function loadDocument() {
     const urlParams = new URLSearchParams(window.location.search);
     const docId = urlParams.get('id');
     
     if (docId) {
-        currentDocument = getDocumentById(docId);
-        
-        if (currentDocument) {
-            displayDocument(currentDocument);
-            highlightTopics(currentDocument.tags);
-        } else {
+        try {
+            currentDocument = await getDocumentById(docId);
+            
+            if (currentDocument) {
+                displayDocument(currentDocument);
+                highlightTopics(currentDocument.topics || []);
+            } else {
+                showError();
+            }
+        } catch (error) {
+            console.error('Error loading document:', error);
             showError();
         }
     } else {
@@ -33,17 +65,27 @@ function displayDocument(doc) {
     document.getElementById('viewerTitle').textContent = doc.title;
     document.title = `neuroDoc - ${doc.title}`;
     
+    const tags = doc.topic_names || doc.tags || [];
+    const authors = Array.isArray(doc.authors) ? doc.authors.join(', ') : (doc.authors || '');
+    const dateAdded = doc.date_added || doc.date;
+    
     const contentDiv = document.getElementById('documentContent');
     contentDiv.innerHTML = `
         <h1 style="color: var(--text); margin-bottom: 1rem;">${doc.title}</h1>
         
         <div style="margin: 1.5rem 0; padding: 1rem; background: var(--bg); border-radius: 8px; display: flex; flex-wrap: wrap; gap: 0.5rem;">
-            ${doc.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
         </div>
         
-        ${doc.authors ? `
+        ${doc.genre ? `
         <div style="margin-bottom: 1rem; color: var(--text-light);">
-            <strong>Authors:</strong> ${doc.authors}
+            <strong>Genre:</strong> ${doc.genre}
+        </div>
+        ` : ''}
+        
+        ${authors ? `
+        <div style="margin-bottom: 1rem; color: var(--text-light);">
+            <strong>Authors:</strong> ${authors}
         </div>
         ` : ''}
         
@@ -53,8 +95,14 @@ function displayDocument(doc) {
         </div>
         ` : ''}
         
+        ${doc.doi ? `
         <div style="margin-bottom: 1rem; color: var(--text-light);">
-            <strong>Date Added:</strong> ${new Date(doc.date).toLocaleDateString('en-US', { 
+            <strong>DOI:</strong> ${doc.doi}
+        </div>
+        ` : ''}
+        
+        <div style="margin-bottom: 1rem; color: var(--text-light);">
+            <strong>Date Added:</strong> ${new Date(dateAdded).toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
@@ -73,6 +121,7 @@ function displayDocument(doc) {
                 <button class="btn btn-secondary" onclick="window.print()">Print</button>
                 <button class="btn btn-secondary" onclick="shareDocument()">Share</button>
                 <button class="btn btn-secondary" onclick="downloadDocument()">Download</button>
+                <button class="btn btn-secondary" style="background: #dc2626; color: white;" onclick="handleDeleteDocument()">Delete</button>
             </div>
         </div>
     `;
@@ -90,25 +139,13 @@ function showError() {
 }
 
 // Highlight topics in sidebar
-function highlightTopics(tags) {
+function highlightTopics(topicIds) {
     const allToggles = document.querySelectorAll('#topicTree .tree-toggle');
     
     allToggles.forEach(toggle => {
-        const text = toggle.textContent.trim();
-        if (tags.includes(text)) {
+        const topicId = parseInt(toggle.getAttribute('data-topic-id'));
+        if (topicIds.includes(topicId)) {
             toggle.classList.add('active');
-            
-            // Expand parent categories
-            let parent = toggle.closest('.tree-children');
-            while (parent) {
-                parent.classList.add('expanded');
-                const parentToggle = parent.previousElementSibling;
-                if (parentToggle) {
-                    const icon = parentToggle.querySelector('.tree-icon');
-                    if (icon) icon.classList.add('rotated');
-                }
-                parent = parent.parentElement.closest('.tree-children');
-            }
         }
     });
 }
@@ -125,27 +162,53 @@ function setupSidebar() {
     }
     
     // Make topic toggles clickable
-    const topicToggles = document.querySelectorAll('#topicTree .tree-toggle');
-    topicToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const topic = this.textContent.trim();
-            if (topic && !this.querySelector('.tree-icon')) {
-                // It's a leaf node, filter by this topic
-                window.location.href = `index.html#filter=${encodeURIComponent(topic)}`;
+    const topicTree = document.getElementById('topicTree');
+    if (topicTree) {
+        topicTree.addEventListener('click', function(e) {
+            const toggle = e.target.closest('.tree-toggle');
+            if (toggle) {
+                const topicId = toggle.getAttribute('data-topic-id');
+                if (topicId) {
+                    window.location.href = `index.html#filter=${topicId}`;
+                }
             }
         });
-    });
+    }
 }
 
 // Setup edit button
 function setupEditButton() {
     const editBtn = document.getElementById('editBtn');
     
-    editBtn.addEventListener('click', function() {
-        if (currentDocument) {
-            window.location.href = `create.html?edit=${currentDocument.id}`;
-        }
-    });
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            if (currentDocument) {
+                window.location.href = `create.html?edit=${currentDocument._id || currentDocument.id}`;
+            }
+        });
+    }
+}
+
+// Setup delete button
+function setupDeleteButton() {
+    // Delete button is added dynamically in displayDocument
+}
+
+// Handle delete document
+async function handleDeleteDocument() {
+    if (!currentDocument) return;
+    
+    if (!confirm(`Are you sure you want to delete "${currentDocument.title}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        await deleteDocument(currentDocument._id || currentDocument.id);
+        alert('Document deleted successfully');
+        window.location.href = 'index.html';
+    } catch (error) {
+        alert(`Error deleting document: ${error.message}`);
+    }
 }
 
 // Share document

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Backend API Test</h1>
+    <div id="status">Testing...</div>
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test root endpoint
+                const rootResponse = await fetch(`${API_BASE_URL}/`);
+                const rootData = await rootResponse.json();
+                resultsDiv.innerHTML += '<h3>✓ Root Endpoint</h3><pre>' + JSON.stringify(rootData, null, 2) + '</pre>';
+                
+                // Test documents endpoint
+                const docsResponse = await fetch(`${API_BASE_URL}/api/documents?limit=3`);
+                const docsData = await docsResponse.json();
+                resultsDiv.innerHTML += '<h3>✓ Documents Endpoint (' + docsData.total + ' total)</h3><pre>' + 
+                    JSON.stringify(docsData.documents.slice(0, 2), null, 2) + '</pre>';
+                
+                // Test topics endpoint
+                const topicsResponse = await fetch(`${API_BASE_URL}/api/topics`);
+                const topicsData = await topicsResponse.json();
+                resultsDiv.innerHTML += '<h3>✓ Topics Endpoint (' + topicsData.length + ' topics)</h3>';
+                
+                statusDiv.innerHTML = '<h2 style="color: green;">✓ All tests passed!</h2>';
+            } catch (error) {
+                statusDiv.innerHTML = '<h2 style="color: red;">✗ Error: ' + error.message + '</h2>';
+                resultsDiv.innerHTML += '<pre style="color: red;">' + error.stack + '</pre>';
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

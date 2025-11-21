@@ -1,4 +1,7 @@
-// data.js - Shared data and utility functions
+const API_BASE_URL = 'http://localhost:8000';
+
+let documentsCache = [];
+let topicsCache = [];
 
 const documents = [
     {
@@ -105,7 +108,149 @@ The study supports the potential of neurofeedback as a non-invasive cognitive en
     }
 ];
 
-// Save to localStorage
+async function apiRequest(endpoint, options = {}) {
+    try {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'API request failed');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+async function loadDocuments() {
+    try {
+        const response = await apiRequest('/api/documents?limit=1000');
+        documentsCache = response.documents || [];
+        return documentsCache;
+    } catch (error) {
+        console.error('Error loading documents:', error);
+    
+        return [...documents];
+    }
+}
+
+async function loadTopics() {
+    try {
+        const topics = await apiRequest('/api/topics?limit=1000');
+        topicsCache = topics || [];
+        return topicsCache;
+    } catch (error) {
+        console.error('Error loading topics:', error);
+        return [];
+    }
+}
+
+async function getDocumentById(id) {
+    try {
+        return await apiRequest(`/api/documents/${id}`);
+    } catch (error) {
+        console.error('Error fetching document:', error);
+    
+        return documentsCache.find(doc => doc._id === id || doc.id === parseInt(id));
+    }
+}
+
+async function createDocument(documentData) {
+    try {
+        return await apiRequest('/api/documents', {
+            method: 'POST',
+            body: JSON.stringify(documentData)
+        });
+    } catch (error) {
+        console.error('Error creating document:', error);
+        throw error;
+    }
+}
+
+async function updateDocument(id, documentData) {
+    try {
+        return await apiRequest(`/api/documents/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(documentData)
+        });
+    } catch (error) {
+        console.error('Error updating document:', error);
+        throw error;
+    }
+}
+
+async function deleteDocument(id) {
+    try {
+        return await apiRequest(`/api/documents/${id}`, {
+            method: 'DELETE'
+        });
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        throw error;
+    }
+}
+
+async function searchDocuments(query) {
+    try {
+        const response = await apiRequest(`/api/documents/search?q=${encodeURIComponent(query)}`);
+        return response.documents || [];
+    } catch (error) {
+        console.error('Error searching documents:', error);
+        return [];
+    }
+}
+
+async function filterDocumentsByTopic(topicId) {
+    try {
+        const response = await apiRequest(`/api/documents/filter/topic/${topicId}`);
+        return response.documents || [];
+    } catch (error) {
+        console.error('Error filtering documents:', error);
+        return [];
+    }
+}
+
+async function generateTopics() {
+    try {
+        return await apiRequest('/api/topics/generate', {
+            method: 'POST'
+        });
+    } catch (error) {
+        console.error('Error generating topics:', error);
+        throw error;
+    }
+}
+
+async function loadCSVData() {
+    try {
+        return await apiRequest('/api/csv/load');
+    } catch (error) {
+        console.error('Error loading CSV:', error);
+        throw error;
+    }
+}
+
+async function suggestTopicsFromContent(content, numTopics = 5) {
+    try {
+        return await apiRequest('/api/topics/suggest', {
+            method: 'POST',
+            body: JSON.stringify({ content, num_topics: numTopics })
+        });
+    } catch (error) {
+        console.error('Error suggesting topics:', error);
+        throw error;
+    }
+}
+
 function saveDocuments() {
     try {
         const data = {docs: documents};
@@ -116,22 +261,6 @@ function saveDocuments() {
     }
 }
 
-// Load from localStorage
-function loadDocuments() {
-    try {
-        return [...documents];
-    } catch (e) {
-        console.error('Load error:', e);
-        return [...documents];
-    }
-}
-
-// Get document by ID
-function getDocumentById(id) {
-    return documents.find(doc => doc.id === parseInt(id));
-}
-
-// Tree toggle function
 function toggleTree(element) {
     const children = element.nextElementSibling;
     const icon = element.querySelector('.tree-icon');

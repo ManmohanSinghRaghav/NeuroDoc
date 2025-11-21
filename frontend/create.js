@@ -1,56 +1,89 @@
-// create.js - Create/Edit document functionality
+
 
 let editingDocument = null;
-let nextId = 7; // Start after existing documents
+let availableTopics = [];
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    checkEditMode();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadAvailableTopics();
+    await checkEditMode();
     setupForm();
     setupSourceToggle();
     setupFileUpload();
     setupSuggestedTopics();
+    setupGenerateTopicsForDocument();
 });
 
-// Check if editing existing document
-function checkEditMode() {
+async function loadAvailableTopics() {
+    try {
+        availableTopics = await loadTopics();
+        updateTopicTree();
+    } catch (error) {
+        console.error('Error loading topics:', error);
+    }
+}
+
+function updateTopicTree() {
+    const topicTree = document.getElementById('editTopicTree');
+    if (!topicTree || availableTopics.length === 0) return;
+    
+
+    const topicHTML = availableTopics.map(topic => `
+        <div class="tree-item">
+            <label>
+                <input type="checkbox" name="topics" value="${topic.topic_id}">
+                <span>${topic.keywords[0] || topic.name}</span>
+                ${topic.keywords.length > 1 ? `<span style="color: var(--text-light); font-size: 0.85rem; margin-left: 0.5rem;">(${topic.keywords.slice(1, 3).join(', ')})</span>` : ''}
+            </label>
+        </div>
+    `).join('');
+    
+    topicTree.innerHTML = topicHTML;
+}
+
+async function checkEditMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('edit');
     
     if (editId) {
-        editingDocument = getDocumentById(editId);
-        
-        if (editingDocument) {
-            document.getElementById('pageTitle').textContent = `Edit Document: ${editingDocument.title}`;
-            populateForm(editingDocument);
+        try {
+            editingDocument = await getDocumentById(editId);
+            
+            if (editingDocument) {
+                document.getElementById('pageTitle').textContent = `Edit Document: ${editingDocument.title}`;
+                populateForm(editingDocument);
+            }
+        } catch (error) {
+            console.error('Error loading document for editing:', error);
+            alert('Error loading document');
         }
     }
 }
 
-// Populate form with existing document data
 function populateForm(doc) {
     document.getElementById('docTitle').value = doc.title;
     document.getElementById('docContent').value = doc.content;
     
-    if (doc.authors) {
-        document.getElementById('docAuthors').value = doc.authors;
+    if (doc.authors && Array.isArray(doc.authors)) {
+        document.getElementById('docAuthors').value = doc.authors.join(', ');
     }
     if (doc.year) {
         document.getElementById('docYear').value = doc.year;
     }
+    if (doc.doi) {
+        document.getElementById('docDOI').value = doc.doi;
+    }
     
-    // Check relevant topics
-    doc.tags.forEach(tag => {
-        const checkbox = document.querySelector(`input[name="topics"][value="${tag}"]`);
+
+    const topics = doc.topics || [];
+    topics.forEach(topicId => {
+        const checkbox = document.querySelector(`input[name="topics"][value="${topicId}"]`);
         if (checkbox) {
             checkbox.checked = true;
-            // Expand parent categories
             expandParentCategories(checkbox);
         }
     });
 }
 
-// Expand parent categories
 function expandParentCategories(element) {
     let parent = element.closest('.tree-children');
     while (parent) {
@@ -64,7 +97,6 @@ function expandParentCategories(element) {
     }
 }
 
-// Setup form submission
 function setupForm() {
     const form = document.getElementById('documentForm');
     const saveAndAddBtn = document.getElementById('saveAndAddBtn');
@@ -79,11 +111,10 @@ function setupForm() {
     });
 }
 
-// Save document
-function saveDocument(addAnother) {
+async function saveDocument(addAnother) {
     const title = document.getElementById('docTitle').value.trim();
     const content = document.getElementById('docContent').value.trim();
-    const authors = document.getElementById('docAuthors').value.trim();
+    const authorsText = document.getElementById('docAuthors').value.trim();
     const year = document.getElementById('docYear').value.trim();
     const doi = document.getElementById('docDOI').value.trim();
     
@@ -97,58 +128,58 @@ function saveDocument(addAnother) {
         return;
     }
     
-    // Get selected topics
+
     const selectedTopics = Array.from(document.querySelectorAll('input[name="topics"]:checked'))
-        .map(cb => cb.value);
+        .map(cb => parseInt(cb.value));
     
     if (selectedTopics.length === 0) {
         alert('Please select at least one topic');
         return;
     }
     
-    // Create document object
-    const doc = {
-        id: editingDocument ? editingDocument.id : nextId++,
+
+    const authors = authorsText ? authorsText.split(',').map(a => a.trim()).filter(a => a) : [];
+    
+
+    const docData = {
         title: title,
-        tags: selectedTopics,
-        preview: content.substring(0, 200) + '...',
         content: content,
-        date: editingDocument ? editingDocument.date : new Date().toISOString().split('T')[0],
-        popularity: editingDocument ? editingDocument.popularity : 50,
-        authors: authors || undefined,
-        year: year || undefined,
-        doi: doi || undefined
+        topics: selectedTopics,
+        authors: authors,
+        year: year ? parseInt(year) : null,
+        doi: doi || null,
+        genre: 'Manual Entry'
     };
     
-    // Save to documents array
-    if (editingDocument) {
-        const index = documents.findIndex(d => d.id === editingDocument.id);
-        if (index !== -1) {
-            documents[index] = doc;
+    try {
+        let savedDoc;
+        if (editingDocument) {
+        
+            savedDoc = await updateDocument(editingDocument._id || editingDocument.id, docData);
+            alert('Document updated successfully!');
+        } else {
+        
+            savedDoc = await createDocument(docData);
+            alert('Document created successfully!');
         }
-    } else {
-        documents.push(doc);
-    }
-    
-    saveDocuments();
-    
-    // Show success message
-    alert(editingDocument ? 'Document updated successfully!' : 'Document created successfully!');
-    
-    if (addAnother) {
-        // Reset form
-        document.getElementById('documentForm').reset();
-        document.querySelectorAll('input[name="topics"]').forEach(cb => cb.checked = false);
-        editingDocument = null;
-        document.getElementById('pageTitle').textContent = 'Create New Document';
-        window.scrollTo(0, 0);
-    } else {
-        // Redirect to viewer
-        window.location.href = `viewer.html?id=${doc.id}`;
+        
+        if (addAnother) {
+        
+            document.getElementById('documentForm').reset();
+            document.querySelectorAll('input[name="topics"]').forEach(cb => cb.checked = false);
+            editingDocument = null;
+            document.getElementById('pageTitle').textContent = 'Create New Document';
+            window.scrollTo(0, 0);
+        } else {
+        
+            window.location.href = `viewer.html?id=${savedDoc._id || savedDoc.id}`;
+        }
+    } catch (error) {
+        alert(`Error saving document: ${error.message}`);
+        console.error('Save error:', error);
     }
 }
 
-// Setup source toggle
 function setupSourceToggle() {
     const radioButtons = document.querySelectorAll('input[name="source"]');
     const typeSource = document.getElementById('typeSource');
@@ -167,7 +198,6 @@ function setupSourceToggle() {
     });
 }
 
-// Setup file upload
 function setupFileUpload() {
     const fileInput = document.getElementById('fileInput');
     const fileNameDisplay = document.getElementById('fileName');
@@ -177,15 +207,15 @@ function setupFileUpload() {
             const file = this.files[0];
             fileNameDisplay.textContent = `Selected: ${file.name}`;
             
-            // Read file content
+        
             const reader = new FileReader();
             reader.onload = function(e) {
                 const content = e.target.result;
                 document.getElementById('docContent').value = content;
                 
-                // Auto-suggest title if empty
+            
                 if (!document.getElementById('docTitle').value) {
-                    const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    const fileName = file.name.replace(/\.[^/.]+$/, "");
                     document.getElementById('docTitle').value = fileName;
                 }
             };
@@ -193,7 +223,7 @@ function setupFileUpload() {
         }
     });
     
-    // Drag and drop
+
     const uploadArea = document.querySelector('.file-upload');
     
     uploadArea.addEventListener('dragover', function(e) {
@@ -219,14 +249,13 @@ function setupFileUpload() {
     });
 }
 
-// Setup suggested topics
 function setupSuggestedTopics() {
     const suggestedTags = document.querySelectorAll('.suggested-tag');
     
     suggestedTags.forEach(tag => {
         tag.addEventListener('click', function() {
-            const topic = this.getAttribute('data-topic');
-            const checkbox = document.querySelector(`input[name="topics"][value="${topic}"]`);
+            const topicId = this.getAttribute('data-topic');
+            const checkbox = document.querySelector(`input[name="topics"][value="${topicId}"]`);
             
             if (checkbox) {
                 checkbox.checked = true;
@@ -238,7 +267,76 @@ function setupSuggestedTopics() {
     });
 }
 
-// Expand all topics
+function setupGenerateTopicsForDocument() {
+    const aiLabel = document.querySelector('.ai-label');
+    if (!aiLabel) return;
+    
+
+    const generateBtn = document.createElement('button');
+    generateBtn.type = 'button';
+    generateBtn.className = 'btn-secondary';
+    generateBtn.innerHTML = '🤖 Suggest Topics';
+    generateBtn.style.marginLeft = '1rem';
+    generateBtn.onclick = handleSuggestTopics;
+    
+    aiLabel.parentNode.insertBefore(generateBtn, aiLabel.nextSibling);
+}
+
+async function handleSuggestTopics() {
+    const content = document.getElementById('docContent').value.trim();
+    const title = document.getElementById('docTitle').value.trim();
+    
+    if (!content && !title) {
+        alert('Please enter document title or content first');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Analyzing...';
+    
+    try {
+    
+        const textToAnalyze = (title + ' ' + content).trim();
+        const suggestions = await suggestTopicsFromContent(textToAnalyze, 5);
+        
+        if (!suggestions || (!suggestions.suggested_topic_ids || suggestions.suggested_topic_ids.length === 0)) {
+        
+            if (suggestions.keywords && suggestions.keywords.length > 0) {
+                alert(`Suggested keywords: ${suggestions.keywords.join(', ')}\n\nNo matching topics found in database. Your document will use these keywords as topics.`);
+            } else {
+                alert('No topics could be suggested from this content');
+            }
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+        
+    
+        let selectedCount = 0;
+        suggestions.suggested_topic_ids.forEach(topicId => {
+            const checkbox = document.querySelector(`input[name="topics"][value="${topicId}"]`);
+            if (checkbox && !checkbox.checked) {
+                checkbox.checked = true;
+                expandParentCategories(checkbox);
+                selectedCount++;
+            }
+        });
+        
+        if (selectedCount > 0) {
+            alert(`Selected ${selectedCount} relevant topic(s) based on your content!\n\nKeywords: ${suggestions.keywords.join(', ')}`);
+        } else {
+            alert(`Suggested keywords: ${suggestions.keywords.join(', ')}\n\nTopics matching these keywords are already selected.`);
+        }
+    } catch (error) {
+        alert(`Error suggesting topics: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
 function expandAllTopics() {
     const allChildren = document.querySelectorAll('#editTopicTree .tree-children');
     const allIcons = document.querySelectorAll('#editTopicTree .tree-icon');
